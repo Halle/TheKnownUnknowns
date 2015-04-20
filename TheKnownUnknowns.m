@@ -30,9 +30,9 @@ static NSString * const kIgnoredCharactersString    = @"!?.,:;";                
         
     NSString *text = [self readInTextWithWhitespaceNormalization:pathToFileAsString]; // Get text with all whitespace normalized. Next we can normalize the characters:
         
-    text = [self showUsesOfCharactersInSet:[NSCharacterSet decimalDigitCharacterSet] textArray:[text componentsSeparatedByString:@" "] fixedTextArray:nil index:0 lastPerformedIndex:0 markOnly:FALSE describe:TRUE]; // Step through number cases interactively.
+    text = [self showUsesOfCharactersInSet:[NSCharacterSet decimalDigitCharacterSet] inText:text]; // Step through number cases interactively.
 
-    text = [self showUsesOfCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:kAmbiguousCharactersString] textArray:[text componentsSeparatedByString:@" "] fixedTextArray:nil index:0 lastPerformedIndex:0 markOnly:FALSE describe:TRUE]; // Step through the known ambiguous symbol cases interactively.
+    text = [self showUsesOfCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:kAmbiguousCharactersString] inText:text]; // Step through the known ambiguous symbol cases interactively.
     
     text = [[text stringByReplacingOccurrencesOfString:@"‘" withString:@"'"]stringByReplacingOccurrencesOfString:@"’" withString:@"'"]; // Make any smart quotes into straight quotes automatically before handling apostrophes.
     
@@ -42,7 +42,7 @@ static NSString * const kIgnoredCharactersString    = @"!?.,:;";                
     
     text = [self removeAllButIntrawordOccurrencesOfCharacter:@"'" inText:text]; // Remove apostrophes, unless they are found between two letters, which we now know will only be in the form of straight quotes.
       
-    text = [self showUsesOfCharactersInSet:[[self addressedCharacterSet] invertedSet] textArray:[text componentsSeparatedByString:@" "] fixedTextArray:nil index:0 lastPerformedIndex:0 markOnly:TRUE describe:TRUE]; // Mark any remaining weird symbols that we don't know about at runtime (everything outside the previous-address set), non-interactively.
+    text = [self showUsesOfCharactersInSet:[[self addressedCharacterSet] invertedSet] inText:text]; // Mark any remaining weird symbols that we don't know about at runtime (everything outside the previous-address set), non-interactively.
 
     [self writeOutTextWithWhitespaceNormalization:text toDuplicateFileNextToOriginalPath:pathToFileAsString]; // Write out results and exit.
 }
@@ -101,7 +101,7 @@ static NSString * const kIgnoredCharactersString    = @"!?.,:;";                
         NSLog(@"input was just the enter key, leaving item as it is.");
         *lastPerformedIndex = *index; // We don't store a change until we're past the point that the user is allowed to go back and edit it.
         [fixedTextArray addObject:[textArray objectAtIndex:*index]];
-        *index = *index + 1; // These are passed by reference because this is a subroutine of a greater recursive routine that is responsible for keeping track of its own indices.
+        *index = *index + 1; // Increment forward.
         return;
     }
     
@@ -137,57 +137,56 @@ static NSString * const kIgnoredCharactersString    = @"!?.,:;";                
 }
 
 
-- (NSString *) showUsesOfCharactersInSet:(NSCharacterSet *)characterSet textArray:(NSArray *)textArray fixedTextArray:(NSMutableArray *)fixedTextArray index:(NSInteger)index lastPerformedIndex:(NSInteger)lastPerformedIndex markOnly:(BOOL)markOnly describe:(BOOL)describe {
+- (NSString *) showUsesOfCharactersInSet:(NSCharacterSet *)characterSet inText:(NSString *)text {
     
-    if([textArray count] == 0) { // This is bad (is it possible?), complain and stop.
-        NSLog(@"Text has no content, stopping.");
-        exit(0);
+    NSArray *textArray = [text componentsSeparatedByString:@" "];
+    
+    NSMutableArray *fixedTextArray = [NSMutableArray new]; // Storage for fixed version.
+    
+    BOOL markOnly = FALSE;
+    
+    if([characterSet isEqualTo:[[self addressedCharacterSet] invertedSet]]) {
+        markOnly = TRUE;
     }
     
-    if(fixedTextArray == nil) {
-        fixedTextArray = [NSMutableArray new]; // First recursion, create the mutable array.
-    }
-        
-    NSString *word = [textArray objectAtIndex:index];
-    
-    if(describe) {
-        if(markOnly) {
-            NSLog(@"Marking any incidences of unknown symbols.");   
-        } else {
-            NSLog(@"Fixing numbers or symbols. For each sentence, type a replacement for the highlighted number and enter, or type a single backslash and enter to repeat the previous edit or marking, or type a single backtick to mark the word for later perusal by enclosing it in [[[]]] to make it easy for you to find later, or just type return or enter in order to leave it alone and progress to the next item.");
-        }
-    }
-    
-    NSRange r = [word rangeOfCharacterFromSet:characterSet];
-    if (r.location != NSNotFound) {
-        if(markOnly) {
-            [fixedTextArray addObject:[NSString stringWithFormat:@"[[[%@]]]", word]];
-            index++;
-        } else {
-            NSLog(@"\"%@ %@ %@ %@%@%@%@ %@ %@ %@\"", 
-                  [self wordIfExists:-3 inTextArray:textArray usingIndex:index],
-                  [self wordIfExists:-2 inTextArray:textArray usingIndex:index],
-                  [self wordIfExists:-1 inTextArray:textArray usingIndex:index],
-                  kTermBold,
-                  kMagentaColor,
-                  word,
-                  kTermReset,
-                  [self wordIfExists:+1 inTextArray:textArray usingIndex:index],
-                  [self wordIfExists:+2 inTextArray:textArray usingIndex:index],
-                  [self wordIfExists:+3 inTextArray:textArray usingIndex:index]              
-                  );
-            
-            [self getInputForUnknownWithCharacterSet:characterSet textArray:textArray fixedTextArray:fixedTextArray index:&index lastPerformedIndex:&lastPerformedIndex];            
-        }
+    if(markOnly) {
+        NSLog(@"Marking any incidences of unknown symbols in the brackets [[[]]].");   
     } else {
-        [fixedTextArray addObject:word];
-        index++;
+        NSLog(@"Fixing numbers or symbols. For each sentence, type a replacement for the highlighted number and enter, or type a single backslash and enter to repeat the previous edit or marking, or type a single backtick to mark the word for later perusal by enclosing it in [[[]]] to make it easy for you to find later, or just type return or enter in order to leave it alone and progress to the next item.");
     }
     
-    if(index < [textArray count]) {
-        return [self showUsesOfCharactersInSet:characterSet textArray:textArray fixedTextArray:fixedTextArray index:index lastPerformedIndex:lastPerformedIndex markOnly:markOnly describe:FALSE];
+    NSInteger lastPerformedIndex = 0;
+    
+    for(NSInteger index = 0; index < [textArray count]; index++) {
+        NSString *word = [textArray objectAtIndex:index];
+        
+        NSRange r = [word rangeOfCharacterFromSet:characterSet];
+        if (r.location != NSNotFound) {
+            if(markOnly) {
+                [fixedTextArray addObject:[NSString stringWithFormat:@"[[[%@]]]", word]];
+                
+            } else {
+                NSLog(@"\"%@ %@ %@ %@%@%@%@ %@ %@ %@\"", // Show the user the item in full context
+                      [self wordIfExists:-3 inTextArray:textArray usingIndex:index],
+                      [self wordIfExists:-2 inTextArray:textArray usingIndex:index],
+                      [self wordIfExists:-1 inTextArray:textArray usingIndex:index],
+                      kTermBold,
+                      kMagentaColor,
+                      word,
+                      kTermReset,
+                      [self wordIfExists:+1 inTextArray:textArray usingIndex:index],
+                      [self wordIfExists:+2 inTextArray:textArray usingIndex:index],
+                      [self wordIfExists:+3 inTextArray:textArray usingIndex:index]              
+                      );
+                
+                [self getInputForUnknownWithCharacterSet:characterSet textArray:textArray fixedTextArray:fixedTextArray index:&index lastPerformedIndex:&lastPerformedIndex];  
+                index--; // Adjust one backwards for index changes done in message to getInput above.
+            }
+        } else {
+            [fixedTextArray addObject:word];
+        }
     }
-
+    
     return [fixedTextArray componentsJoinedByString:@" "];
 }
 

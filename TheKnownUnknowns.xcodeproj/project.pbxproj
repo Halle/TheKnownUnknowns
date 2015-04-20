@@ -37,7 +37,7 @@
 /* Begin PBXFileReference section */
 		8C327B6B1AD8231D00056171 /* TheKnownUnknowns */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TheKnownUnknowns; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C327B6E1AD8231D00056171 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		8C78F3D91AE299A70030E650 /* TheKnownUnknowns copy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "TheKnownUnknowns copy"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C78F3D91AE299A70030E650 /* TheKnownUnknownsTestContent */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TheKnownUnknownsTestContent; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C7FEE071ADC0B2E00C2B713 /* TheKnownUnknowns.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TheKnownUnknowns.h; sourceTree = "<group>"; };
 		8C7FEE081ADC0B2E00C2B713 /* TheKnownUnknowns.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TheKnownUnknowns.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -74,7 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				8C327B6B1AD8231D00056171 /* TheKnownUnknowns */,
-				8C78F3D91AE299A70030E650 /* TheKnownUnknowns copy */,
+				8C78F3D91AE299A70030E650 /* TheKnownUnknownsTestContent */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -121,7 +121,7 @@
 			);
 			name = TheKnownUnknownsTestContent;
 			productName = TheKnownUnknowns;
-			productReference = 8C78F3D91AE299A70030E650 /* TheKnownUnknowns copy */;
+			productReference = 8C78F3D91AE299A70030E650 /* TheKnownUnknownsTestContent */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -199,7 +199,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -255,6 +255,7 @@
 		8C327B731AD8231D00056171 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -269,12 +270,13 @@
 		8C78F3D71AE299A70030E650 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 					TESTCONTENT,
 				);
-				PRODUCT_NAME = "TheKnownUnknowns copy";
+				PRODUCT_NAME = TheKnownUnknownsTestContent;
 			};
 			name = Debug;
 		};
@@ -282,7 +284,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = TESTCONTENT;
-				PRODUCT_NAME = "TheKnownUnknowns copy";
+				PRODUCT_NAME = TheKnownUnknownsTestContent;
 			};
 			name = Release;
 		};
